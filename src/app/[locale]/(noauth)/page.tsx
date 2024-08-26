@@ -5,7 +5,7 @@ import { memo } from "react";
 import { QueryKey } from "@/constants/query-key";
 import { configService } from "@/services/server";
 
-import Home from "./components/Home";
+import HBZ0000 from "@/pages/HBZ0000/HBZ0000";
 
 const HomePage = async ({ params: { locale } }: BasePageProps) => {
   unstable_setRequestLocale(locale);
@@ -18,7 +18,7 @@ const HomePage = async ({ params: { locale } }: BasePageProps) => {
 
   return (
     <HydrationBoundary state={dehydrate(queryClient)}>
-      <Home />
+      <HBZ0000 />
     </HydrationBoundary>
   );
 };

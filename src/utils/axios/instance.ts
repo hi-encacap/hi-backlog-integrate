@@ -7,8 +7,9 @@ import type { AxiosResponse } from "@/interfaces";
 class Axios {
   public instance: AxiosInstance;
 
-  constructor() {
+  constructor(baseURL: string) {
     this.instance = AxiosSingleton.getInstance();
+    this.instance.defaults.baseURL = baseURL;
   }
 
   public request<T = unknown>(config: AxiosRequestConfig): Promise<AxiosResponse<T>> {
