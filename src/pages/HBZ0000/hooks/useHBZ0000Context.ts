@@ -9,7 +9,7 @@ const useHBZ0000Context = () => {
       return undefined;
     }
 
-    return rows[0];
+    return rows[0].map((cell) => cell.toString() || "");
   }, []);
   const contentRows = useMemo(() => {
     if (rows.length <= 1) {

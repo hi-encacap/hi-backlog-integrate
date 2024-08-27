@@ -11,7 +11,29 @@ const Reader = () => {
       const file = event.target.files?.[0];
       if (file) {
         readXlsxFile(file).then((rows) => {
-          onChangeRows(rows);
+          const filteredRows = rows.filter((row) => row.some((cell) => cell));
+
+          if (filteredRows.length === 0) {
+            return;
+          }
+
+          const headerRow = filteredRows[0];
+          const contentRows = filteredRows.slice(1);
+
+          if (headerRow.length === 0) {
+            return;
+          }
+
+          const validHeaderColumnIndexes = headerRow
+            .map((cell, index) => (cell ? index : -1))
+            .filter((index) => index !== -1);
+          const validHeaderRow = headerRow.filter((_, index) => validHeaderColumnIndexes.includes(index));
+          const validContentRows = contentRows
+            .map((row) => row.filter((_, index) => validHeaderColumnIndexes.includes(index)))
+            // With valid column, but it empty, it will be "-".
+            .map((row) => row.map((cell) => cell || "-"));
+
+          onChangeRows([validHeaderRow, ...validContentRows]);
         });
       }
     },

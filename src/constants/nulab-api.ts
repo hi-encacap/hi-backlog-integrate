@@ -8,7 +8,3 @@ export enum BacklogBuiltinField {
   CATEGORY = "Category",
   MILESTONE = "Milestone",
 }
-
-export enum BacklogCustomField {
-  COMPONENT_TYPE = "Component Type",
-}

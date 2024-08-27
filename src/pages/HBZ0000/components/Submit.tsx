@@ -1,6 +1,6 @@
 import { useCallback, useState } from "react";
 
-import { BacklogBuiltinField, BacklogCustomField } from "@/constants/nulab-api";
+import { BacklogBuiltinField } from "@/constants/nulab-api";
 import { IBacklogIssueCreationBody } from "@/interfaces/nulab";
 import { nulabService } from "@/services/client";
 
@@ -10,8 +10,8 @@ import useKeyMapping from "../hooks/useKeyMapping";
 import useProjectData from "../hooks/useProjectData";
 
 const Submit = () => {
-  const { project, rows, getHeaderByColumnIndex, projectPriorities, projectIssueTypes } = useHBZ0000Context();
-  const { validRows } = useDataValidation();
+  const { project, rows, projectPriorities, projectIssueTypes, getHeaderByColumnIndex } = useHBZ0000Context();
+  const { validRows, ignoredFields } = useDataValidation();
   const { getKeyByHeader, getValueByKey } = useKeyMapping();
   const projectData = useProjectData();
 
@@ -24,7 +24,6 @@ const Submit = () => {
 
     validRows.forEach((row) => {
       const builtinFields = Object.values(BacklogBuiltinField);
-      const customFields = Object.values(BacklogCustomField);
       const issue: Record<string, unknown> = {
         projectId: project!.id,
         issueTypeId: projectIssueTypes[0].id,
@@ -34,24 +33,28 @@ const Submit = () => {
 
       row.forEach((cell, index) => {
         const header = getHeaderByColumnIndex(index);
+
+        if (ignoredFields.includes(header as string)) {
+          return;
+        }
+
         const headerMapping = getKeyByHeader(getHeaderByColumnIndex(index)!.toString());
         const headerMappingKey = headerMapping?.key;
 
         if (headerMappingKey && builtinFields.includes(header as BacklogBuiltinField)) {
           const cellProjectData = projectData[header as BacklogBuiltinField];
-          const cellData = cellProjectData.find((item) => item.name === cell.toString());
+          const cellData = cellProjectData && cellProjectData.find((item) => item.name === cell.toString());
           if (cellData) {
             issue[headerMappingKey] = getValueByKey(
               headerMapping,
               cellData as unknown as Record<string, unknown>,
             );
           } else {
+            console.log(cell);
             issue[headerMappingKey] = cell.toString();
           }
-        } else if (customFields.includes(header as BacklogCustomField)) {
-          const customField = projectData[header as BacklogCustomField].find(
-            (item) => item.name === cell.toString(),
-          );
+        } else {
+          const customField = projectData[header as string].find((item) => item.name === cell.toString());
           if (customField) {
             issue[`customField_${customField.fieldId}`] = customField.id;
           }
@@ -68,6 +71,12 @@ const Submit = () => {
     setIsLoading(true);
 
     const issues = generateIssues();
+
+    console.log(issues);
+
+    if (issues.length !== 0) {
+      return;
+    }
 
     try {
       await Promise.all(issues.map(nulabService.createBacklogIssue));
